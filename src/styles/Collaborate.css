@@ -1,0 +1,196 @@
+.ios-input {
+    border: 1px solid #d1d1d6;
+    border-radius: 10px;
+    padding: 10px 12px 10px 40px;
+    font-size: 16px;
+    background-color: #ffffff;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.ios-input:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+    outline: none;
+}
+
+.ios-button {
+    background-color: #007aff;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    width: 100%;
+    height: 44px;
+}
+
+.ios-button:hover {
+    background-color: #0056b3;
+}
+
+.ios-button:active {
+    background-color: #004080;
+    transform: scale(0.98);
+}
+
+.ios-button span {
+    margin-left: 8px;
+}
+
+.ios-button-invite {
+    display: flex;
+    width: 100%;
+    padding: 10px;
+    background-color: #007aff;
+    color: #ffffff;
+    border: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.ios-button-invite span {
+    margin-left: 8px;
+}
+
+.generate-link-button {
+    background-color: #333333;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.dark .generate-link-button {
+    background-color: #f1f1f1;
+    color: #000000;
+}
+
+.invite-form, .invite-link-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.invitation-link {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.generate-link-button {
+    white-space: nowrap;
+}
+
+.share-button {
+    background: none;
+}
+
+.share-button:hover {
+    background-color: #0061cc;
+}
+
+.share-button:active {
+    background-color: #007aff;
+}
+
+.invitation-link .ios-input {
+    flex-grow: 1;
+}
+
+.invitation-link .share-button {
+    width: auto;
+    margin-left: -5px;
+}
+
+@media (min-width: 769px) {
+    .invite-form, .invite-link-section {
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .invite-form, .invite-link-section {
+        width: 100%;
+    }
+
+    .input-with-icon {
+        width: 100%;
+    }
+
+    .ios-button {
+        width: 100%;
+    }
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    margin-bottom: 15px;
+    color: #8e8e93;
+}
+
+.input-with-icon .ios-input {
+    padding-left: 40px;
+}
+
+.invitation-link {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.invitation-link .input-with-icon {
+    flex-grow: 1;
+}
+
+.invitation-link .share-button {
+    flex-shrink: 0;
+}
+
+.shared-list-title {
+    display: flex;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-icon {
+    color: #007aff; 
+}
+
+.icono-compartir {
+    color: #007aff !important;
+}
+
+.collaborator-names {
+    color: #8e8e93; 
+    font-weight: normal;
+}

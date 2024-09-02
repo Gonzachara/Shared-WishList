@@ -1,12 +1,12 @@
     import React, { useState, useEffect, useContext, Suspense } from 'react';
     import { auth, database, storage } from '../services/firebase';
-    import { ref as databaseRef, onValue, set, ref } from 'firebase/database';
+    import { ref as databaseRef, onValue, set } from 'firebase/database';
     import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
     import { updateProfile, signOut } from 'firebase/auth';
     import { ThemeContext } from '../contexts/ThemeContext';
     import Invitations from './Invitations';
     import IOSAlert from './IOSAlert';
-    import { LogOut, Sun, Moon } from 'lucide-react';
+    import { LogOut, Sun, Moon, Edit3 } from 'lucide-react';
 
     const Profile = () => {
         const [user, setUser] = useState(null);
@@ -26,6 +26,7 @@
                 setUser(currentUser);
                 setFullName(currentUser.displayName || '');
                 setImageUrl(currentUser.photoURL || '');
+                setEmail(currentUser.email || '');
                 
                 const userRef = databaseRef(database, `users/${currentUser.uid}`);
                 onValue(userRef, (snapshot) => {
@@ -35,7 +36,6 @@
                         setBio(data.bio || '');
                         setBirthdate(data.birthdate || '');
                         setLocation(data.location || '');
-                        setEmail(currentUser.email || '');
                     }
                 });
             }
@@ -72,22 +72,6 @@
             }
         };
 
-        const checkInvitations = () => {
-            const currentUser = auth.currentUser;
-            if (currentUser) {
-            const sharedListsRef = ref(database, 'sharedLists');
-            onValue(sharedListsRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                const invitations = Object.entries(data)
-                    .filter(([_, value]) => value.invitedEmail === currentUser.email)
-                    .map(([key, value]) => ({ id: key, ...value }));
-                // Mostrar invitaciones y permitir aceptarlas
-                }
-            });
-            }
-        };
-
         const handleLogoutClick = () => {
             setShowLogoutAlert(true);
         };
@@ -111,8 +95,8 @@
             <div className="profile-form">
             <div className="profile-image-container">
                 <img src={imageUrl || 'https://via.placeholder.com/150'} alt="Foto de perfil" className="profile-image" />
-                <label htmlFor="profile-image-input" className="profile-image-label">
-                    Cambiar foto de perfil
+                <label htmlFor="profile-image-input" className="profile-image-edit">
+                    <Edit3 size={18} />
                     <input
                         id="profile-image-input"
                         type="file"

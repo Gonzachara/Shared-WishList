@@ -20,7 +20,7 @@ const SharedWishList = ({ listId }) => {
 
     return (
         <div>
-            <h2>Lista de deseos compartida</h2>
+            <h2>Lista de eventos compartida</h2>
             <ul>
                 {wishList.map((item, index) => (
                     <li key={index}>{item.name}</li>

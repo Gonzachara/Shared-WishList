@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { database, auth } from '../services/firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, get } from 'firebase/database';
+import { MapPin } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../App.css';
@@ -17,56 +18,97 @@ const Map = () => {
     const [events, setEvents] = useState([]);
     const [nextEvent, setNextEvent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [sharedEvents, setSharedEvents] = useState([]);
+    const [sharedListUsers, setSharedListUsers] = useState({});
+    const userIdRef = useRef(null);
 
     useEffect(() => {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-            const sharedListsRef = ref(database, 'sharedLists');
-            onValue(sharedListsRef, (snapshot) => {
-                const data = snapshot.val();
-                let allEvents = [];
-                if (data) {
-                    const sharedList = Object.entries(data).find(([_, value]) => 
-                        value.accepted && value.owners.includes(currentUser.uid)
-                    );
-                    if (sharedList && sharedList[1].events) {
-                        allEvents = Object.entries(sharedList[1].events).flatMap(([uid, events]) => 
-                            Object.entries(events || {}).map(([eventId, event]) => ({
-                                ...event,
-                                id: eventId,
-                                owner: uid,
-                                shared: true
-                            }))
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                userIdRef.current = user.uid;
+            } else {
+                userIdRef.current = null;
+            }
+            loadAllEvents();
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const loadAllEvents = () => {
+        const sharedListsRef = ref(database, 'sharedLists');
+        const personalEventsRef = userIdRef.current ? ref(database, `users/${userIdRef.current}/events`) : null;
+
+        Promise.all([
+            get(sharedListsRef),
+            personalEventsRef ? get(personalEventsRef) : Promise.resolve(null)
+        ]).then(async ([sharedSnapshot, personalSnapshot]) => {
+            const sharedData = sharedSnapshot.val();
+            const personalData = personalSnapshot ? personalSnapshot.val() : null;
+
+            let allEvents = [];
+            let allSharedEvents = [];
+            let listUsers = {};
+
+            if (sharedData) {
+                for (const [listId, listValue] of Object.entries(sharedData)) {
+                    if (listValue.owners && listValue.owners.includes(userIdRef.current) && listValue.events) {
+                        // Obtener nombres de usuarios para esta lista
+                        const userNames = await Promise.all(listValue.owners.map(async (uid) => {
+                            if (uid === userIdRef.current) return 'Tú';
+                            const userSnapshot = await get(ref(database, `users/${uid}`));
+                            const userData = userSnapshot.val();
+                            return userData ? (userData.displayName || userData.email) : 'Usuario desconocido';
+                        }));
+                        listUsers[listId] = userNames.filter(name => name !== 'Tú').join(', ');
+
+                        Object.entries(listValue.events).forEach(([uid, events]) => 
+                            Object.entries(events || {}).forEach(([eventId, event]) => {
+                                const sharedEvent = {
+                                    ...event,
+                                    id: eventId,
+                                    owner: uid,
+                                    shared: true,
+                                    listId: listId
+                                };
+                                allEvents.push(sharedEvent);
+                                allSharedEvents.push(sharedEvent);
+                            })
                         );
                     }
                 }
-                loadPersonalEvents(currentUser.uid, allEvents);
-            });
-        } else {
-            setLoading(false);
-        }
-    }, []);
-    
-    const loadPersonalEvents = (userId, sharedEvents) => {
-        const eventsRef = ref(database, `users/${userId}/events`);
-        onValue(eventsRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                const personalEvents = Object.values(data).map(event => ({...event, shared: false}));
-                const allEvents = [...sharedEvents, ...personalEvents];
-                setEvents(allEvents);
-                findNextEvent(allEvents);
-            } else {
-                setEvents(sharedEvents);
-                findNextEvent(sharedEvents);
             }
+
+            if (personalData) {
+                const personalEvents = Object.entries(personalData).map(([eventId, event]) => ({
+                    ...event,
+                    id: eventId,
+                    shared: false
+                }));
+                allEvents = [...allEvents, ...personalEvents];
+            }
+
+            setEvents(allEvents);
+            setSharedEvents(allSharedEvents);
+            setSharedListUsers(listUsers);
+            findNextEvent(allEvents);
+            setLoading(false);
+        }).catch(error => {
+            console.error("Error loading events:", error);
             setLoading(false);
         });
     };
 
     const findNextEvent = (allEvents) => {
         const now = new Date();
-        const upcomingEvents = allEvents.filter(event => new Date(event.date) > now);
+        const upcomingEvents = allEvents.filter(event => 
+            event.date && new Date(event.date) > now && 
+            event.coordinates && 
+            Array.isArray(event.coordinates) && 
+            event.coordinates.length === 2 &&
+            !isNaN(event.coordinates[0]) && 
+            !isNaN(event.coordinates[1])
+        );
         upcomingEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
         setNextEvent(upcomingEvents[0] || null);
     };
@@ -103,7 +145,10 @@ const Map = () => {
     return (
         <div className="page">
             <h2 className="page-title">Mapa de Eventos</h2>
-            <h3 style={{marginBottom: '15px'}}>Ubicación del próximo evento:</h3>
+            <h3 className="section-title" style={{marginTop: '20px', marginBottom: '15px', fontSize: '20px'}}>
+                <MapPin size={20} className="section-icon" />
+                Próximos eventos personales:
+            </h3>
             {nextEvent ? (
                 <div className="next-event">
                     <p>
@@ -117,6 +162,7 @@ const Map = () => {
             ) : (
                 <p style={{display: 'none'}}>No tienes eventos próximos.</p>
             )}
+
             {validEvents.length > 0 ? (
                 <div style={{ height: '400px', width: '100%' }}>
                     <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
@@ -143,6 +189,45 @@ const Map = () => {
                 </div>
             ) : (
                 <p>No tienes eventos válidos para mostrar en el mapa.</p>
+            )}
+            
+            {/* Sección de eventos compartidos */}
+            <h3 className="section-title" style={{marginTop: '20px', marginBottom: '15px', fontSize: '20px'}}>
+                <MapPin size={20} className="section-icon" />
+                Próximos eventos compartidos:
+            </h3>
+            {sharedEvents.length > 0 ? (
+                <div className="shared-events">
+                    {sharedEvents.slice(0, 3).map((event, index) => (
+                        <div key={index} className="next-event">
+                            <p>
+                                <strong>{event.title}</strong><br />
+                                Fecha: {new Date(event.date).toLocaleDateString()}<br />
+                                Ubicación: {event.location}<br />
+                                Categoría: {event.category}<br />
+                                Lista con: {sharedListUsers[event.listId] || 'Cargando...'}
+                            </p>
+                            {event.coordinates && Array.isArray(event.coordinates) && event.coordinates.length === 2 && (
+                                <div style={{ height: '200px', width: '100%', marginTop: '10px' }}>
+                                    <MapContainer center={event.coordinates} zoom={13} style={{ height: '100%', width: '100%' }}>
+                                        <TileLayer
+                                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                        />
+                                        <Marker position={event.coordinates} icon={nextEventIcon}>
+                                            <Popup>
+                                                <strong>{event.title}</strong><br />
+                                                {event.location}
+                                            </Popup>
+                                        </Marker>
+                                    </MapContainer>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <p>No tienes eventos compartidos próximos.</p>
             )}
         </div>
     );

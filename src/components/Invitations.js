@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, database } from '../services/firebase';
-import { ref, onValue, update } from 'firebase/database';
-import { FaEnvelopeOpenText } from 'react-icons/fa';
+import { ref, onValue, update, remove } from 'firebase/database';
+import { Inbox, Check, X } from 'lucide-react';
 
 const Invitations = () => {
     const [invitations, setInvitations] = useState([]);
@@ -61,6 +61,24 @@ const Invitations = () => {
         }
     };
 
+    const declineInvitation = async (listId) => {
+        const user = auth.currentUser;
+        if (user) {
+            try {
+                const listRef = ref(database, `sharedLists/${listId}`);
+                await remove(listRef);
+                
+                alert('Invitación rechazada');
+                setInvitations(invitations.filter(inv => inv.id !== listId));
+            } catch (error) {
+                console.error("Error rechazando invitación:", error);
+                alert('Error al rechazar la invitación. Por favor, intenta de nuevo.');
+            }
+        } else {
+            alert('Debes estar autenticado para rechazar invitaciones.');
+        }
+    };
+
     if (loading) {
         return <div>Cargando invitaciones...</div>;
     }
@@ -73,18 +91,23 @@ const Invitations = () => {
         <div className="invitations-section">
             <h3 className="section-title">
                 Invitaciones pendientes
-                <FaEnvelopeOpenText className="invitation-icon" />
+                <Inbox className="invitation-icon" />
             </h3>
             {invitations.length === 0 ? (
-                <p className="no-invitations">No tienes invitaciones pendientes</p>
+                <p className="no-invitations">No hay invitaciones pendientes.</p>
             ) : (
                 <ul className="invitation-list">
                     {invitations.map((invitation) => (
                         <li key={invitation.id} className="invitation-item">
-                            <span className="invitation-from">Invitación de: {invitation.owners[0]}</span>
-                            <button onClick={() => acceptInvitation(invitation.id)} className="button accept-button">
-                                Aceptar
-                            </button>
+                            <span className="invitation-sender">De: {invitation.senderEmail || invitation.owners[0]}</span>
+                            <div className="invitation-actions">
+                                <button onClick={() => acceptInvitation(invitation.id)} className="icon-button-invitation accept-button">
+                                    <Check />
+                                </button>
+                                <button onClick={() => declineInvitation(invitation.id)} className="icon-button-invitation decline-button">
+                                    <X />
+                                </button>
+                            </div>
                         </li>
                     ))}
                 </ul>

@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import '../App.css';
+import { ThemeContext } from '../contexts/ThemeContext';
 
 const IOSAlert = ({ isOpen, onClose, onConfirm, title, message }) => {
     const [isVisible, setIsVisible] = useState(false);
+    const { isDarkMode } = useContext(ThemeContext);
 
     useEffect(() => {
         if (isOpen) {
@@ -18,7 +20,7 @@ const IOSAlert = ({ isOpen, onClose, onConfirm, title, message }) => {
     if (!isOpen && !isVisible) return null;
 
     return (
-        <div className={`ios-alert-overlay ${isVisible ? 'visible' : ''}`}>
+        <div className={`ios-alert-overlay ${isVisible ? 'visible' : ''} ${isDarkMode ? 'dark' : ''}`}>
             <div className="ios-alert">
                 <h2 className="ios-alert-title">{title}</h2>
                 <p className="ios-alert-message">{message}</p>

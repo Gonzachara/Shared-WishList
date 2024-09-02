@@ -3,10 +3,10 @@ import { database, auth } from '../services/firebase';
 import { ref, onValue, push, remove, update } from 'firebase/database';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FaCalendarAlt, FaHourglassHalf, FaCheckCircle } from 'react-icons/fa';
 import EditReminderModal from './EditReminderModal';
 import IOSAlert from './IOSAlert';
-import { Edit2, Check, Clock, Zap, CircleX, Undo, Trash2 } from 'lucide-react';
+import { Edit2, Check, Undo, Trash2, Rewind, CalendarFold, CircleCheckBig, PenLine, Calendar } from 'lucide-react';
+import '../App.css';
 
 const Reminders = () => {
     const [reminders, setReminders] = useState([]);
@@ -78,7 +78,7 @@ const Reminders = () => {
             const newReminderData = {
                 ...newReminder,
                 owner: currentUser.uid,
-                date: newReminder.date ? newReminder.date.toISOString() : new Date().toISOString(), // Aseguramos que siempre haya una fecha
+                date: newReminder.date ? newReminder.date.toISOString() : new Date().toISOString(),
                 completed: false
             };
             
@@ -90,7 +90,8 @@ const Reminders = () => {
                 push(personalReminderRef, newReminderData);
             }
             
-            setNewReminder({ title: '', date: new Date(), completed: false }); // Establecemos la fecha por defecto a la actual
+            // Modificamos esta línea para resetear la fecha a null
+            setNewReminder({ title: '', date: null, completed: false });
         }
     };
     
@@ -141,6 +142,11 @@ const Reminders = () => {
     const handleEditReminder = (editedReminder) => {
         const currentUser = auth.currentUser;
         if (currentUser) {
+            if (!editedReminder.isPersonal && editedReminder.owner !== currentUser.uid) {
+                console.error('No tienes permiso para editar este recordatorio.');
+                return;
+            }
+    
             const reminderRef = editedReminder.isPersonal
                 ? ref(database, `reminders/${currentUser.uid}/personal/${editedReminder.id}`)
                 : ref(database, `sharedLists/${editedReminder.listId}/reminders/${editedReminder.owner}/${editedReminder.id}`);
@@ -171,59 +177,93 @@ const Reminders = () => {
         }
     };
 
-    const updateReminder = (e) => {
-        e.preventDefault();
-        const currentUser = auth.currentUser;
-        if (currentUser && editingReminder) {
-            const reminderRef = editingReminder.isPersonal
-                ? ref(database, `reminders/${currentUser.uid}/personal/${editingReminder.id}`)
-                : ref(database, `sharedLists/${editingReminder.listId}/reminders/${editingReminder.owner}/${editingReminder.id}`);
-            
-            const updatedReminder = {
-                ...editingReminder,
-                title: newReminder.title,
-                date: newReminder.date.toISOString(),
-            };
-            
-            update(reminderRef, updatedReminder);
-            setEditingReminder(null);
-            setNewReminder({ title: '', date: new Date(), completed: false });
-        }
-    };
-
     const sortedReminders = reminders.sort((a, b) => new Date(a.date) - new Date(b.date));
     const now = new Date();
     const nextReminders = sortedReminders.filter(reminder => !reminder.completed && new Date(reminder.date) >= now);
     const pastReminders = sortedReminders.filter(reminder => !reminder.completed && new Date(reminder.date) < now);
     const completedReminders = sortedReminders.filter(reminder => reminder.completed);    
+
+    const CustomInput = React.forwardRef(({ value, onClick }, ref) => (
+        <div className="input-wrapper custom-date-input" onClick={onClick} ref={ref}>
+            <CalendarFold size={18} className="input-icon" />
+            <input value={value} readOnly className="input" placeholder="Seleccionar fecha" />
+        </div>
+    ));
+
     
+    const resetAllReminders = () => {
+        setAlertConfig({
+            isOpen: true,
+            title: "Resetear todos los recordatorios",
+            message: "¿Estás seguro que quieres eliminar todos tus recordatorios? Esta acción no se puede deshacer.",
+            onConfirm: () => {
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                    // Eliminar recordatorios personales
+                    const personalRemindersRef = ref(database, `reminders/${currentUser.uid}/personal`);
+                    remove(personalRemindersRef);
+
+                    // Eliminar recordatorios compartidos
+                    const sharedListsRef = ref(database, 'sharedLists');
+                    onValue(sharedListsRef, (snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                            Object.entries(data).forEach(([listId, listData]) => {
+                                if (listData.owners.includes(currentUser.uid)) {
+                                    const userRemindersRef = ref(database, `sharedLists/${listId}/reminders/${currentUser.uid}`);
+                                    remove(userRemindersRef);
+                                }
+                            });
+                        }
+                    }, { onlyOnce: true });
+
+                    // Limpiar el estado local
+                    setReminders([]);
+                    setAlertConfig({ ...alertConfig, isOpen: false });
+                    console.log('Todos los recordatorios han sido eliminados');
+                }
+            }
+        });
+    };
+
     return (
         <div className="ios-page">
             <h2 className="ios-page-title">Recordatorios</h2>
             <form onSubmit={addReminder} className="ios-form">
-                <input
-                    type="text"
-                    value={newReminder.title}
-                    onChange={(e) => setNewReminder({...newReminder, title: e.target.value})}
-                    placeholder="Título del recordatorio"
-                    className="ios-input"
-                    required
-                />
-                <DatePicker
-                    selected={newReminder.date}
-                    onChange={(date) => setNewReminder({...newReminder, date})}
-                    dateFormat="dd/MM/yyyy"
-                    className="ios-datepicker"
-                    placeholderText="Seleccionar fecha"
-                    isClearable
-                />
+                <div className="input-wrapper">
+                    <PenLine size={18} className="input-icon" />
+                    <input
+                        type="text"
+                        value={newReminder.title}
+                        onChange={(e) => setNewReminder({...newReminder, title: e.target.value})}
+                        placeholder="Título del recordatorio"
+                        className="input"
+                        required
+                    />
+                </div>
+                <div className="input-wrapper date-picker-wrapper">
+                    <Calendar size={18} className="input-icon" />
+                    <DatePicker
+                        selected={newReminder.date}
+                        onChange={(date) => setNewReminder({...newReminder, date})}
+                        dateFormat="dd/MM/yyyy"
+                        customInput={<CustomInput />}
+                        placeholderText="Seleccionar fecha"
+                        isClearable
+                    />
+                </div>
                 <button type="submit" className="ios-button-reminder">
                     Agregar Recordatorio +
+                </button>
+                <br />
+                <button onClick={resetAllReminders} className="ios-button-danger">
+                    <span>Eliminar todos los recordatorios</span>
+                    <Trash2 size={18} />
                 </button>
             </form>
             <div className="ios-section">
                 <h3 className="ios-section-title">
-                    Próximos Recordatorios <FaCalendarAlt className="ios-section-icon" />
+                    Próximos Recordatorios <CalendarFold className="ios-section-icon" />
                 </h3>
                 {nextReminders.length > 0 ? (
                     <ul className="ios-list">
@@ -261,7 +301,7 @@ const Reminders = () => {
             {pastReminders.length > 0 && (
                 <div className="ios-section">
                     <h3 className="ios-section-title">
-                        Recordatorios Pasados <FaHourglassHalf className="ios-section-icon" />
+                        Recordatorios Pasados <Rewind className="ios-section-icon" />
                     </h3>
                     <ul className="ios-list">
                         {pastReminders.map((reminder) => (
@@ -291,7 +331,7 @@ const Reminders = () => {
             {completedReminders.length > 0 && (
                 <div className="ios-section">
                     <h3 className="ios-section-title">
-                        Recordatorios Completados <FaCheckCircle className="ios-section-icon" />
+                        Recordatorios Completados <CircleCheckBig className="ios-section-icon" />
                     </h3>
                     <ul className="ios-list">
                         {completedReminders.map((reminder) => (

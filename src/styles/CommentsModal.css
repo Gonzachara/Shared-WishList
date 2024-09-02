@@ -1,0 +1,243 @@
+.comments-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+}
+
+.comments-modal-overlay.open {
+    opacity: 1;
+}
+
+.comments-modal {
+    background-color: #fff;
+    color: #000;
+    border-radius: 10px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    transform: scale(1.2);
+    opacity: 0;
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+.comments-modal.open {
+    transform: scale(1);
+    opacity: 1;
+    animation: modalAppear 0.2s ease-out forwards;
+}
+
+.comments-modal-overlay.closing {
+    opacity: 0;
+}
+
+.comments-modal.closing {
+    transform: scale(0.8);
+    opacity: 0;
+    animation: modalDisappear 0.2s ease-out forwards;
+}
+
+@keyframes modalAppear {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes modalDisappear {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+.comments-list {
+    margin-bottom: 15px;
+}
+
+.comment {
+    display: flex;
+    align-items: flex-start;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.comment-avatar {
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.comment-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.comment-content {
+    flex-grow: 1;
+}
+
+.comment p {
+    margin: 0 0 5px 0;
+}
+
+.comment small {
+    font-size: 0.8rem;
+    color: #666;
+    display: block;
+}
+
+.delete-comment-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: transparent;
+    color: #ff3b30;
+    border: none;
+    border-radius: 6px;
+    padding: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comment-textarea {
+    width: 100%;
+    height: 100px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    resize: vertical;
+    z-index: 2000 !important;
+}
+
+.comment-privacy-selector {
+    margin-bottom: 10px;
+}
+
+.custom-select {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.select-icon {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #666;
+}
+
+.comment-select {
+    width: 100%;
+    padding: 8px 10px 8px 35px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.comment-select::-ms-expand {
+    display: none;
+}
+
+.comment-select:focus {
+    outline: none;
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+.comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.add-comment-button,
+.close-modal-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.add-comment-button {
+    background-color: #007aff;
+    color: white;
+}
+
+.close-modal-button {
+    background-color: #8e8e93;
+    color: white;
+}
+
+/* Estilos para modo oscuro */
+.dark .comments-modal {
+    background-color: #1c1c1e;
+    color: #fff;
+}
+
+.dark .comment {
+    background-color: #2c2c2e;
+}
+
+.dark .comment small {
+    color: #999;
+}
+
+.dark .comment-textarea,
+.dark .comment-select {
+    background-color: #2c2c2e;
+    color: #fff;
+    border-color: #3a3a3c;
+}
+
+.dark .comment-select {
+    background-color: #2c2c2e;
+    color: #fff;
+    border-color: #3a3a3c;
+}
+
+.dark .select-icon,
+.dark .custom-select::after {
+    color: #999;
+}
+
+.dark .delete-comment-button {
+    color: #ff453a;
+}
+
+.dark .comment-avatar img {
+    border: 1px solid #3a3a3c;
+}

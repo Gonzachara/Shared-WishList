@@ -1,0 +1,74 @@
+    /* Estilos específicos para EditEventModal */
+    .ios-modal .ios-input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .ios-modal .ios-input {
+        flex-grow: 1;
+        padding: 10px 15px;
+        border: 1px solid #3a3a3c;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .ios-input {
+        padding: 10px 35px !important;
+    }
+    
+    .ios-modal .ios-button {
+        padding: 10px 20px;
+        background-color: #007aff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    
+    .ios-modal .ios-button:hover {
+        background-color: #0056b3;
+    }
+    
+    .ios-modal .ios-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .icon-button.icon-plus-tag {
+        background: none;
+        color: #3a3a3c;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .dark .icon-button.icon-plus-tag {
+        color: #6b7280;
+    }
+    
+    .ios-modal .ios-tag {
+        background-color: #e0e0e0;
+        border-radius: 16px;
+        padding: 6px 12px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .ios-modal .ios-tag-remove {
+        background: none;
+        border: none;
+        color: #ff3b30;
+        font-size: 18px;
+        margin-left: 5px;
+        cursor: pointer;
+    }
+
+    .dark .ios-modal .ios-tag {
+        background-color: #1c1c1e;
+    }

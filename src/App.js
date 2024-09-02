@@ -9,7 +9,10 @@ import Navigation from './components/Navigation';
 import Profile from './components/Profile';
 import SharedWishList from './components/SharedWishList';
 import Collaborate from './components/Collaborate';
+import CalendarPage from './components/CalendarPage';
+import SearchPage from './components/SearchPage';
 import { ThemeProvider, ThemeContext } from './contexts/ThemeContext';
+import JoinSharedList from './components/JoinSharedList';
 import './App.css';
 import { useTransition, animated } from 'react-spring';
 
@@ -48,11 +51,15 @@ const AppContent = () => {
         }}>
           <Routes location={item}>
             <Route path="/" element={<WishList />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/map" element={<Map />} />
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/collaborate" element={<Collaborate />} />
             <Route path="/shared-wish-list" element={<SharedWishList />} />
+            <Route path="/join/:listId" element={<JoinSharedList />} />
+            <Route path="/wishlist/:listId" element={<WishList />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </animated.div>

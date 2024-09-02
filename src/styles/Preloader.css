@@ -1,0 +1,48 @@
+    .preloader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #ffffff;
+    }
+    
+    .loading-bar {
+        width: 100px;
+        height: 2px;
+        background-color: #333;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .loading-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 30%;
+        height: 100%;
+        background-color: #141414;
+        animation: loading 1.5s infinite ease-in-out;
+    }
+
+    .dark .preloader {
+        background-color: #1c1c1e;
+    }
+    
+    .dark .loading-bar {
+        background-color: #333;
+    }
+    
+    .dark .loading-bar::after {
+        background-color: #595959;
+    }
+    
+    @keyframes loading {
+        0% {
+        left: -30%;
+        }
+        100% {
+        left: 100%;
+        }
+    }
